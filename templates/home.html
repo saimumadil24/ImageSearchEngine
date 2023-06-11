@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Image Search</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        background-color: #4CAF50;
+        color: white;
+        margin: 0;
+        padding: 20px;
+      }
+      form {
+        display: flex;
+        margin: 20px;
+      }
+      input[type='file'] {
+        flex-grow: 1;
+      }
+      button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        cursor: pointer;
+        margin-left: 10px;
+        padding: 10px 20px;
+      }
+      button:hover {
+        background-color: #3e8e41;
+      }
+      #results {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 20px;
+      }
+      #results img {
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image Search</h1>
+    <form id="upload-form">
+      <input type="file" id="image-input" accept="image/*" />
+      <button type="submit">Search</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+      const uploadForm = document.getElementById('upload-form');
+      const imageInput = document.getElementById('image-input');
+      const resultsDiv = document.getElementById('results');
+
+      uploadForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        console.log('Form submitted');
+
+        // Clear the results div
+        resultsDiv.innerHTML = '';
+
+        // Get the selected file
+        const file = imageInput.files[0];
+        if (!file) {
+          alert('Please select an image file');
+          return;
+        }
+
+        console.log('File selected:', file);
+
+        // Create a FormData object and append the file
+        const formData = new FormData();
+        formData.append('image', file);
+
+        console.log('Sending POST request');
+
+        // Send the POST request to the Flask app
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await response.json();
+
+        console.log('POST request complete:', data);
+
+        // Check if the response data has a similar_images property
+        if (!data.similar_images) {
+          console.error('No similar_images property in response data:', data);
+          return;
+        }
+
+       // Display the results
+       data.similar_images.forEach((img_base64) => {
+         const img = document.createElement('img');
+         img.src = `data:image/jpeg;base64,${img_base64}`;
+         img.width = 224;
+         img.height = 224;
+         resultsDiv.appendChild(img);
+       });
+     });
+   </script>
+ </body>
+</html>
